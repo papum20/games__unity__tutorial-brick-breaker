@@ -1,0 +1,111 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class GameManager : MonoBehaviour
+{
+
+    [SerializeField]
+    GameObject pressAnyKeyPanel, gameOverPanel, gameWonPanel;
+
+    Rigidbody2D ball;
+
+    bool gameStarted = false, gameOver = false;
+    int spawnedBricks = 0;
+
+    GameObject bar;
+    [SerializeField]
+    ParticleSystem explosionEffect;
+
+
+
+    public static GameManager gameManager;
+
+    private void Awake()
+    {
+        gameManager = this;
+    }
+
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        ResetGameScene();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if(gameOver && Input.GetMouseButtonDown(0))
+        {
+            gameOverPanel.SetActive(false);
+            gameWonPanel.SetActive(false);
+            ResetGameScene();
+        }
+
+
+        else if (!gameStarted && Input.GetMouseButtonDown(0))
+        {
+            gameStarted = true;
+            pressAnyKeyPanel.SetActive(false);
+            ball = GameObject.FindGameObjectWithTag("Ball").GetComponent<Rigidbody2D>();
+            ball.AddForce(Vector2.up);
+        }
+    }
+
+
+
+    void ResetGameScene()
+    {
+        if (SceneManager.GetSceneByName("GameScene").name == "GameScene")
+            SceneManager.UnloadScene("GameScene");
+
+        SceneManager.LoadScene("GameScene", LoadSceneMode.Additive);
+
+        gameOver = false;
+        gameStarted = false;
+        spawnedBricks = 0;
+    }
+
+
+
+    public void GameOver()
+    {
+        if (bar == null)
+            bar = GameObject.FindGameObjectWithTag("Bar");
+
+        GameObject.Instantiate(explosionEffect, bar.transform.position, Quaternion.identity, bar.transform);
+        bar.GetComponent<SpriteRenderer>().enabled = false;
+
+        gameOver = true;
+        gameOverPanel.SetActive(true);
+    }
+
+
+
+    public void GameWon()
+    {
+        Destroy(ball.gameObject);
+        gameWonPanel.SetActive(true);
+        gameOver = true;
+    }
+
+
+
+    public void SetSpawnedBricks(int value)
+    {
+        spawnedBricks = value;
+    }
+
+
+
+    public void BrickDestroyed()
+    {
+        spawnedBricks--;
+        if (spawnedBricks < 1)
+            GameWon();
+    }
+
+}
+
